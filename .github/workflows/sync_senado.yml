@@ -1,0 +1,27 @@
+name: Sincronizar Dados Abertos do Senado
+
+on:
+  schedule:
+    - cron: '33 6 * * *' # 06:33 UTC = 03:33 BRT (horário quebrado para evitar fila no GitHub Actions e sobrecarga na API)
+  workflow_dispatch:    # Permite rodar manualmente com 1 clique na aba Actions
+
+jobs:
+  sync-neon-db:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Executar Coletor Oficial do Senado -> Neon
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python scripts/sync_senado.py
